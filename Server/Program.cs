@@ -9,7 +9,7 @@ public static class Program
 {
     public static void Main()
     {
-        var listener = new TcpListener(IPAddress.Any, 51234);
+        var listener = new TcpListener(IPAddress.Any, 5123);
         listener.Start();
 
         Console.WriteLine("Listening for Clients");
@@ -22,8 +22,12 @@ public static class Program
 
             Console.WriteLine("Client connected");
 
-            ListenForMessages(tcpClient, serverFunctions).ContinueWith(_ =>
+            ListenForMessages(tcpClient, serverFunctions).ContinueWith(e =>
             {
+                if (e.Exception != null)
+                {
+                    Console.WriteLine(e.Exception.ToString());
+                }
                 Console.WriteLine("Client disconnected");
             });
         }
@@ -35,13 +39,13 @@ public static class Program
 
         while (tcpClient.Connected)
         {
-            await Networking.ProcessMessage(tcpClient, (header, memory) =>
+            await Networking.ProcessMessage(tcpClient, async (header, memory) =>
             {
                 switch (header.FunctionId)
                 {
                     case 1:
                         var args = MemoryPackSerializer.Deserialize<ExecuteArguments>(memory.Span);
-                        var returnValue = serverFunctions.Execute(args.Param1, args.Param2);
+                        var returnValue = await serverFunctions.Execute(args.Param1, args.Param2);
 
                         Networking.SendReturnValue(tcpClient, returnValue, header.InvocationGuid);
                         break;

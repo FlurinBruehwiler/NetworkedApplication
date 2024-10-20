@@ -29,8 +29,8 @@ public struct ReturnMessageHeader
 
 public enum MessageType
 {
-    FunctionInvocation,
-    FunctionResponse
+    FunctionInvocation = 0,
+    FunctionResponse = 1
 }
 
 

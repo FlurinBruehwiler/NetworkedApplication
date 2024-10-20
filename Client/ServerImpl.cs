@@ -8,7 +8,7 @@ public class ServerImpl : IServerFunctions
 {
     public required TcpClient TcpClient;
 
-    public Task<int> Execute(int param1, float param2)
+    public ValueTask<int> Execute(int param1, float param2)
     {
         var args = new ExecuteArguments
         {

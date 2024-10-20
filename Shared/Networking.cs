@@ -1,5 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using MemoryPack;
 
 namespace Shared;
@@ -47,26 +48,27 @@ public static class Networking
         return message;
     }
 
-    public static Task<TReturn> SendInvocation<TArg, TReturn>(TcpClient tcpClient, TArg args)
+    public static ValueTask<TReturn> SendInvocation<TArg, TReturn>(TcpClient tcpClient, TArg args)
     {
         var paramsAsBytes = MemoryPackSerializer.Serialize(args);
 
-        Span<byte> messageToSend = new byte[MessageHeader.Size + InvocationMessageHeader.Size + paramsAsBytes.Length];
+        var buffer = new byte[MessageHeader.Size + InvocationMessageHeader.Size + paramsAsBytes.Length];
+        Span<byte> bufferView = buffer;
 
-        MessageDecoder.Write(ref messageToSend, new MessageHeader
+        MessageDecoder.Write(ref bufferView, new MessageHeader
         {
             MessageType = MessageType.FunctionInvocation,
         });
 
         var invocationGuid = Guid.NewGuid();
 
-        MessageDecoder.Write(ref messageToSend, new InvocationMessageHeader
+        MessageDecoder.Write(ref bufferView, new InvocationMessageHeader
         {
             FunctionId = 1,
             InvocationGuid = invocationGuid
         });
-        paramsAsBytes.CopyTo(messageToSend);
-        SendMessage(tcpClient, messageToSend);
+        paramsAsBytes.CopyTo(bufferView);
+        SendMessage(tcpClient, buffer);
 
         var tcs = new TaskCompletionSource<TReturn>();
 
@@ -76,31 +78,32 @@ public static class Networking
             SetResult = returnValue => tcs.SetResult((TReturn)returnValue)
         });
 
-        return tcs.Task;
+        return new ValueTask<TReturn>(tcs.Task);
     }
 
     public static void SendReturnValue<T>(TcpClient tcpClient, T returnValue, Guid invocationGuid)
     {
         var returnValueAsBytes = MemoryPackSerializer.Serialize(returnValue);
 
-        Span<byte> messageToSend = new byte[MessageHeader.Size + ReturnMessageHeader.Size + + returnValueAsBytes.Length];
+        var buffer = new byte[MessageHeader.Size + ReturnMessageHeader.Size + + returnValueAsBytes.Length];
+        Span<byte> bufferView = buffer;
 
-        MessageDecoder.Write(ref messageToSend, new MessageHeader
+        MessageDecoder.Write(ref bufferView, new MessageHeader
         {
             MessageType = MessageType.FunctionResponse
         });
 
-        MessageDecoder.Write(ref messageToSend, new ReturnMessageHeader
+        MessageDecoder.Write(ref bufferView, new ReturnMessageHeader
         {
             InvocationGuid = invocationGuid
         });
 
-        returnValueAsBytes.CopyTo(messageToSend);
+        returnValueAsBytes.CopyTo(bufferView);
 
-        SendMessage(tcpClient, messageToSend);
+        SendMessage(tcpClient, buffer);
     }
 
-    public static async Task ProcessMessage(TcpClient tcpClient, Action<InvocationMessageHeader, Memory<byte>> processInvocation)
+    public static async Task ProcessMessage(TcpClient tcpClient, Func<InvocationMessageHeader, Memory<byte>, ValueTask> processInvocation)
     {
         var message = (await GetNextMessage(tcpClient)).AsMemory();
         var header = MessageDecoder.Read<MessageHeader>(ref message);
@@ -108,14 +111,14 @@ public static class Networking
         if (header.MessageType == MessageType.FunctionResponse)
         {
             var returnHeader = MessageDecoder.Read<ReturnMessageHeader>(ref message);
-            var pendingFunction = Networking.PendingFunctions[returnHeader.InvocationGuid];
+            var pendingFunction = PendingFunctions[returnHeader.InvocationGuid];
             var returnValue = MemoryPackSerializer.Deserialize(pendingFunction.ReturnType, message.Span);
             pendingFunction.SetResult(returnValue!);
         }
         else if (header.MessageType == MessageType.FunctionInvocation)
         {
             var invocationHeader = MessageDecoder.Read<InvocationMessageHeader>(ref message);
-            processInvocation(invocationHeader, message);
+            await processInvocation(invocationHeader, message);
         }
     }
 

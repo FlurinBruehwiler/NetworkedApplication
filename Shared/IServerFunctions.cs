@@ -8,5 +8,5 @@ public struct ExecuteArguments
 
 public interface IServerFunctions
 {
-    public Task<int> Execute(int param1, float param2);
+    public ValueTask<int> Execute(int param1, float param2);
 }

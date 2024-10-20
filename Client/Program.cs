@@ -7,11 +7,11 @@ namespace Client;
 
 public static class Program
 {
-    public static void Main()
+    public static async Task Main()
     {
         var ip = IPAddress.Parse("127.0.0.1");
 
-        var ipEndpoint = new IPEndPoint(ip, 51234);
+        var ipEndpoint = new IPEndPoint(ip, 5123);
 
         var tcpClient = new TcpClient();
 
@@ -26,6 +26,8 @@ public static class Program
             return;
         }
 
+        new Thread(() => ReceiveMessageThread(tcpClient, new ClientFunctions()).GetAwaiter().GetResult()).Start();
+
         var serverImpl = new ServerImpl
         {
             TcpClient = tcpClient
@@ -34,7 +36,8 @@ public static class Program
         while (true)
         {
             counter++;
-            serverImpl.Execute(counter, counter * 2.2f);
+            var res = await serverImpl.Execute(counter, counter * 2.2f);
+            Console.WriteLine($"Response: {res}");
             Thread.Sleep(100);
         }
     }
@@ -55,6 +58,8 @@ public static class Program
                         Networking.SendReturnValue(tcpClient, returnValue, header.InvocationGuid);
                         break;
                 }
+
+                return ValueTask.CompletedTask;
             });
         }
     }
