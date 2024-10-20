@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{A1DB53B9-67C2-40D2-AE55-F17C8100F1A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGenerator", "SourceGenerator\SourceGenerator.csproj", "{69E5C04A-6B4D-4F51-AC2D-004063C7B49F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SourceGeneratorTest", "SourceGeneratorTest\SourceGeneratorTest.csproj", "{D6FE7F43-058B-43B6-A488-49938D300FD6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{A1DB53B9-67C2-40D2-AE55-F17C8100F1A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1DB53B9-67C2-40D2-AE55-F17C8100F1A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1DB53B9-67C2-40D2-AE55-F17C8100F1A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{69E5C04A-6B4D-4F51-AC2D-004063C7B49F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{69E5C04A-6B4D-4F51-AC2D-004063C7B49F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{69E5C04A-6B4D-4F51-AC2D-004063C7B49F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{69E5C04A-6B4D-4F51-AC2D-004063C7B49F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D6FE7F43-058B-43B6-A488-49938D300FD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D6FE7F43-058B-43B6-A488-49938D300FD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D6FE7F43-058B-43B6-A488-49938D300FD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D6FE7F43-058B-43B6-A488-49938D300FD6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

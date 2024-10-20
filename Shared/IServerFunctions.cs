@@ -1,6 +1,9 @@
-﻿namespace Shared;
+﻿using MemoryPack;
 
-public struct ExecuteArguments
+namespace Shared;
+
+[MemoryPackable]
+public partial struct ExecuteArguments
 {
     public int Param1;
     public float Param2;

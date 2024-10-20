@@ -1,8 +1,10 @@
-﻿using Shared;
+﻿using MemoryPack;
+using Shared;
 
 namespace Client;
 
-public struct SetNameArgs
+[MemoryPackable]
+public partial struct SetNameArgs
 {
     public int arg1;
     public float arg2;
@@ -10,9 +12,9 @@ public struct SetNameArgs
 
 public class ClientFunctions : IClientFunctions
 {
-    public bool SetName(int arg1, float arg2)
+    public ValueTask<bool> SetName(int arg1, float arg2)
     {
         Console.WriteLine($"{arg1}, {arg2}");
-        return true;
+        return ValueTask.FromResult(true);
     }
 }

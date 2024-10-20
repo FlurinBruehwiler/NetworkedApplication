@@ -28,7 +28,7 @@ public static class Program
 
         new Thread(() => ReceiveMessageThread(tcpClient, new ClientFunctions()).GetAwaiter().GetResult()).Start();
 
-        var serverImpl = new ServerImpl
+        var serverImpl = new IServerFunctionsImpl
         {
             TcpClient = tcpClient
         };
@@ -38,10 +38,8 @@ public static class Program
             counter++;
             var res = await serverImpl.Execute(counter, counter * 2.2f);
             Console.WriteLine($"Response: {res}");
-            Thread.Sleep(100);
         }
     }
-
 
     private static async Task ReceiveMessageThread(TcpClient tcpClient, ClientFunctions clientFunctions)
     {
