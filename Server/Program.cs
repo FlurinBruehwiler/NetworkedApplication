@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Sockets;
+using MemoryPack;
 using Shared;
 
 namespace Server;
@@ -34,8 +35,18 @@ public static class Program
 
         while (tcpClient.Connected)
         {
+            await Networking.ProcessMessage(tcpClient, (header, memory) =>
+            {
+                switch (header.FunctionId)
+                {
+                    case 1:
+                        var args = MemoryPackSerializer.Deserialize<ExecuteArguments>(memory.Span);
+                        var returnValue = serverFunctions.Execute(args.Param1, args.Param2);
 
-
+                        Networking.SendReturnValue(tcpClient, returnValue, header.InvocationGuid);
+                        break;
+                }
+            });
         }
 
         Console.WriteLine("Stop listening for messages");

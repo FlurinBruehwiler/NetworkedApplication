@@ -100,6 +100,25 @@ public static class Networking
         SendMessage(tcpClient, messageToSend);
     }
 
+    public static async Task ProcessMessage(TcpClient tcpClient, Action<InvocationMessageHeader, Memory<byte>> processInvocation)
+    {
+        var message = (await GetNextMessage(tcpClient)).AsMemory();
+        var header = MessageDecoder.Read<MessageHeader>(ref message);
+
+        if (header.MessageType == MessageType.FunctionResponse)
+        {
+            var returnHeader = MessageDecoder.Read<ReturnMessageHeader>(ref message);
+            var pendingFunction = Networking.PendingFunctions[returnHeader.InvocationGuid];
+            var returnValue = MemoryPackSerializer.Deserialize(pendingFunction.ReturnType, message.Span);
+            pendingFunction.SetResult(returnValue!);
+        }
+        else if (header.MessageType == MessageType.FunctionInvocation)
+        {
+            var invocationHeader = MessageDecoder.Read<InvocationMessageHeader>(ref message);
+            processInvocation(invocationHeader, message);
+        }
+    }
+
     private static unsafe int ConvertToInt(byte[] array)
     {
         fixed (byte* firstChar = array)

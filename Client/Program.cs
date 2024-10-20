@@ -44,29 +44,18 @@ public static class Program
     {
         while (tcpClient.Connected)
         {
-            var message = (await Networking.GetNextMessage(tcpClient)).AsSpan();
-            var header = MessageDecoder.Read<MessageHeader>(ref message);
-
-            if (header.MessageType == MessageType.FunctionResponse)
+            await Networking.ProcessMessage(tcpClient, (header, memory) =>
             {
-                var returnHeader = MessageDecoder.Read<ReturnMessageHeader>(ref message);
-                var pendingFunction = Networking.PendingFunctions[returnHeader.InvocationGuid];
-                var returnValue = MemoryPackSerializer.Deserialize(pendingFunction.ReturnType, message);
-                pendingFunction.SetResult(returnValue!);
-            }
-            else if (header.MessageType == MessageType.FunctionInvocation)
-            {
-                var invocationHeader = MessageDecoder.Read<InvocationMessageHeader>(ref message);
-                switch (invocationHeader.FunctionId)
+                switch (header.FunctionId)
                 {
                     case 1:
-                        var args = MemoryPackSerializer.Deserialize<SetNameArgs>(message);
+                        var args = MemoryPackSerializer.Deserialize<SetNameArgs>(memory.Span);
                         var returnValue = clientFunctions.SetName(args.arg1, args.arg2);
 
-                        Networking.SendReturnValue(tcpClient, returnValue, invocationHeader.InvocationGuid);
+                        Networking.SendReturnValue(tcpClient, returnValue, header.InvocationGuid);
                         break;
                 }
-            }
+            });
         }
     }
 }

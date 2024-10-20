@@ -36,9 +36,9 @@ public enum MessageType
 
 public static class MessageDecoder
 {
-    public static unsafe T Read<T>(ref Span<byte> message) where T : unmanaged
+    public static unsafe T Read<T>(ref Memory<byte> message) where T : unmanaged
     {
-        fixed (byte* m = message)
+        fixed (byte* m = message.Span)
         {
             T header = *(T*)m;
             message = message.Slice(sizeof(T));
